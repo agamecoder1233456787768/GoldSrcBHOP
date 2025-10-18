@@ -1,75 +1,73 @@
-@echo off
-REM --- Garry's Mod Auto-Jump HOLD Script Deployment ---
-REM This script creates an AutoHotkey (.ahk) script to enable continuous 
-REM jump spamming while you HOLD the spacebar.
-
+echo off
+REM --- Garry's Mod CFG Installation Script (Fixing 'wait' command issue) ---
 echo #######################################################
-echo # GMOD HOLD-TO-JUMP (NOT A TOGGLE) BIND SETUP #
+echo # GMOD CONFIGURATION INSTALLER (WAIT COMMAND FIX) #
 echo #######################################################
 echo.
-echo This requires AutoHotkey to be installed (External Macro).
-echo It will create a script that spams 'Jump' while you HOLD SPACE.
+echo Installing Auto-Jump Toggle Binds...
+echo This script also enables 'sv_allow_wait_command' needed for jump spam.
 echo.
 pause
 
-REM Define the target folder (placing it in the GMod folder for easy access)
 REM !!! IMPORTANT: VERIFY THIS PATH MATCHES YOUR STEAM INSTALLATION !!!
+REM If your Steam is not in 'C:\Program Files (x86)\', you MUST edit this line.
 set "GMOD_DIR=C:\Program Files (x86)\Steam\steamapps\common\GarrysMod\garrysmod"
-set "AHK_FILE=%GMOD_DIR%\hold_to_bhop.ahk"
+set "CFG_DIR=%GMOD_DIR%\cfg"
+set "CFG_FILE=%CFG_DIR%\autoexec.cfg"
 
-echo.
-echo The AutoHotkey script will be created at:
-echo %AHK_FILE%
+echo Target CFG folder: %CFG_DIR%
 echo.
 
 REM --- PATH CHECK AND ERROR HANDLING ---
-if not exist "%GMOD_DIR%" (
+if not exist "%CFG_DIR%" (
     echo =======================================================
-    echo [CRITICAL ERROR] The Garry's Mod folder was NOT found!
+    echo [CRITICAL ERROR] The Garry's Mod CFG folder was NOT found!
     echo =======================================================
-    echo The script cannot proceed. Please edit this .bat file and CORRECT the 'GMOD_DIR' variable.
+    echo The script cannot proceed. The path specified was:
+    echo "%CFG_DIR%"
+    echo.
+    echo Please EDIT this .bat file and CORRECT the 'GMOD_DIR' variable to match your installation.
+    echo.
     pause
     exit /b 1
 )
 
-echo [SUCCESS] GMod folder found.
+echo [SUCCESS] Configuration folder found.
 
-REM --- WRITE THE AUTOHOTKEY SCRIPT FILE (.ahk) ---
-echo Writing AutoHotkey script to 'hold_to_bhop.ahk'...
+REM --- WRITE THE AUTOEXEC.CFG FILE CONTENT ---
+echo Writing auto-jump toggle binds to autoexec.cfg...
 
 (
-    echo #NoEnv
-    echo #Warn
-    echo SendMode Input
-    echo SetWorkingDir %%A_ScriptDir%%
+    echo // --- GMOD AUTO-JUMP TOGGLE CFG (Installed by Batch Script) ---
+    echo // Toggles continuous jumping. Press SPACE to start, press SPACE to stop.
     echo.
-    echo // Target GMod executable (hl2.exe)
-    echo #IfWinActive, ahk_exe hl2.exe 
+    
+    // Crucial command: Enables the 'wait' command needed for this alias to loop
+    echo sv_allow_wait_command 1
     echo.
-    echo // When Spacebar is pressed, start a loop
-    echo *Space::
-    echo Loop {
-    echo     // Check if the Spacebar key is still physically being held down
-    echo     GetKeyState, state, Space, P
-    echo     if state = U // U means 'Up' or released. If released, break the loop.
-    echo         break
-    echo     // Send a Jump input
-    echo     Send, {Space}
-    echo     Sleep, 10 // Wait 10ms before sending the next jump (adjust this number if needed)
-    echo }
-    echo return
+    
+    REM Define the ON state: start jump spam loop and set the toggle alias to OFF.
+    echo alias autojump_on "+jump; wait; -jump; wait; autojump_on"
+    
+    REM Define the OFF state: stop jump spam and set the toggle alias to ON.
+    echo alias autojump_off "alias autojump_toggle autojump_on; -jump; echo Auto-Jump OFF"
+    
+    REM Initialize the toggle state to OFF when the game starts.
+    echo autojump_off
     echo.
-    echo #IfWinActive
-) > "%AHK_FILE%"
+    
+    REM Bind the Spacebar to the toggle alias.
+    echo bind "space" "autojump_toggle"
+    echo.
+    
+    echo echo "--- GMOD AUTO-JUMP TOGGLE CONFIGURED: Bind 'space' to start/stop ---"
+) > "%CFG_FILE%"
 
 echo.
 echo =======================================================
-echo [COMPLETE] Script Deployment Complete.
+echo [INSTALLATION COMPLETE]
 echo =======================================================
+echo The 'autoexec.cfg' file has been successfully installed.
 echo.
-echo 1. Launch Garry's Mod.
-echo 2. DOUBLE-CLICK the file "%AHK_FILE%" to activate the script.
-echo 3. The script will ONLY work while the GMod window is active.
-echo 4. Press and HOLD the SPACEBAR to continuously jump.
-echo.
+echo Launch Garry's Mod. **Tap SPACE** once to start jumping, **tap SPACE** again to stop.
 pause
